@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+#Just a simple example command.
+
+puts "It worked! 🎩✨"
