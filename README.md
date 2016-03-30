@@ -16,3 +16,18 @@ Now, when you type `example`, you'll see `example build` in the list of supporte
 #!/usr/bin/env bash
 # This line will be shown in the list of commands.
 ````
+
+## Installation
+This repository includes a Makefile that will install `magic-cli` and all of its subcommands into `/usr/local/bin`:
+
+````bash
+$ make install
+````
+
+You can also use it to uninstall `magic-cli`:
+
+````bash
+$ make uninstall
+````
+
+If you rename magic-cli to something different, change the value of `PREFIX` in the Makefile.
