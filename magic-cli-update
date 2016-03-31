@@ -1,0 +1,57 @@
+#!/usr/bin/env ruby
+# Installs the latest version of these tools.
+
+require 'tmpdir'
+require 'shellwords'
+
+#
+# Update this to point to wherever you're hosting your tools. If you're not hosting with git,
+# change the `fetch_latest_code!` function below to suit your scenario.
+#
+SOURCE_REPO = 'git@github.com:slackhq/magic-cli.git'
+
+#
+# This message is shown if updating the tools fails for any reason; you can customize this to tell
+# people where to go ask for help if they encounter trouble.
+#
+UPDATE_FAILED_MESSAGE = ''
+
+#
+# Gets the latest version of the tools and copies them into the current working directory.
+#
+def fetch_latest_code!
+    `git clone --quiet #{Shellwords.escape(SOURCE_REPO)} .`
+end
+
+#
+# Returns an array containing the time the tools were updated and which version they are now at.
+#
+def get_tools_version_info
+    timestamp, sha1 = `git log -1 --pretty='%at,%h'`.strip.split(',')
+
+    [ Time.at(timestamp.to_i), sha1 ]
+end
+
+DESTINATION_DIR = File.dirname(__FILE__)
+
+unless File.stat(DESTINATION_DIR).writable?
+    puts "Looks like you don't have write permissions to #{DESTINATION_DIR}. Run this command to fix it and try again:"
+    puts "    sudo chown -R `whoami` #{DESTINATION_DIR}"
+    abort
+end
+
+Dir.mktmpdir  do |dir|
+    Dir.chdir dir do
+
+        fetch_latest_code!
+        `make install_quiet`
+
+        if $?.exitstatus == 0
+            timestamp, version = get_tools_version_info
+            puts "Updated tools to #{version} (#{timestamp})"
+        else
+            puts "Eep, updating tools failed. :( #{UPDATE_FAILED_MESSAGE}"
+            abort
+        end
+    end
+end
