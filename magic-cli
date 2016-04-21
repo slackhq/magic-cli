@@ -4,12 +4,35 @@ COMMAND_DIR = File.expand_path(File.dirname(__FILE__))
 BASENAME = File.basename(__FILE__)
 PREFIX = "#{BASENAME}-"
 
-$commands = Dir.glob(File.join(File.dirname(__FILE__), "#{PREFIX}*"))
 
-def list_commands!
-    subcommands = []
+class MagicCli
+    attr_reader :commands
 
-    $commands.each do |filename|
+    def initialize()
+        @commands = Dir.glob(File.join(File.dirname(__FILE__), "#{PREFIX}*"))
+    end
+
+    def list_commands
+        subcommands = []
+        @commands.each do |filename|
+            description = self.get_description(filename)
+            # Remove the `BASENAME-` PREFIX from the filename to get the name of the subcommand
+            subcommand = File.basename(filename)[(BASENAME.size + 1)..-1]
+            subcommands.push({
+                :name => subcommand,
+                :description => description
+            })
+        end
+        max_subcommand_name_length = subcommands.map{ |subcommand| subcommand[:name].length }.max
+
+        subcommands
+           .sort_by { |subcommand| subcommand[:name] }
+           .each do |subcommand|
+               puts "   %-#{max_subcommand_name_length}s   %s" % [subcommand[:name], subcommand[:description]]
+           end
+    end
+
+    def get_description(filename)
         # Optionally, subcommands can put a description on the second line of the file
         lines = File.readlines(filename)
         description = if lines[1] && lines[1].strip.start_with?('#')
@@ -17,42 +40,11 @@ def list_commands!
         else
             nil
         end
-
-        # Remove the `BASENAME-` PREFIX from the filename to get the name of the subcommand
-        subcommand = File.basename(filename)[(BASENAME.size + 1)..-1]
-
-        subcommands.push({
-            :name => subcommand,
-            :description => description
-        })
+        return description
     end
 
-    max_subcommand_name_length = subcommands.map{ |subcommand| subcommand[:name].length }.max
 
-    subcommands
-        .sort_by { |subcommand| subcommand[:name] }
-        .each do |subcommand|
-            puts "   %-#{max_subcommand_name_length}s   %s" % [subcommand[:name], subcommand[:description]]
-    end
-end
-
-command = ARGV.shift
-case command
-    when nil, '--help', '-h'
-        puts "usage: #{BASENAME} <command> [<args>]"
-        puts ''
-
-        if $commands.empty?
-            puts 'Hrm, there are no commands for me to run.'
-            puts "I can run any executables in #{COMMAND_DIR} which have filenames that start with `#{PREFIX}`."
-            abort
-        else
-            puts 'Commands:'
-            list_commands!
-        end
-    when '--list', '-l'
-        list_commands!
-    else
+    def execute(command, args)
         executable = File.join(COMMAND_DIR, PREFIX + command)
         unless File.exist?(executable)
             puts "I don't know how to #{command}. :("
@@ -60,4 +52,26 @@ case command
         end
 
         exec executable, *ARGV
+    end
+end
+
+command = ARGV.shift
+cli = MagicCli.new
+case command
+    when nil, '--help', '-h'
+        puts "usage: #{BASENAME} <command> [<args>]"
+        puts ''
+
+        if cli.commands.empty?
+            puts 'Hrm, there are no commands for me to run.'
+            puts "I can run any executables in #{COMMAND_DIR} which have filenames that start with `#{PREFIX}`."
+            abort
+        else
+            puts 'Commands:'
+            cli.list_commands
+        end
+    when '--list', '-l'
+        cli.list_commands
+    else
+        cli.execute(command, ARGV)
 end
