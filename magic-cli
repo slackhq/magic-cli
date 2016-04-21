@@ -7,6 +7,8 @@ PREFIX = "#{BASENAME}-"
 $commands = Dir.glob(File.join(File.dirname(__FILE__), "#{PREFIX}*"))
 
 def list_commands!
+    subcommands = []
+
     $commands.each do |filename|
         # Optionally, subcommands can put a description on the second line of the file
         lines = File.readlines(filename)
@@ -18,18 +20,26 @@ def list_commands!
 
         # Remove the `BASENAME-` PREFIX from the filename to get the name of the subcommand
         subcommand = File.basename(filename)[(BASENAME.size + 1)..-1]
-        puts "    #{BASENAME} #{subcommand}"
-        if description
-            puts "        #{description}"
-        end
-        puts ''
+
+        subcommands.push({
+            :name => subcommand,
+            :description => description
+        })
+    end
+
+    max_subcommand_name_length = subcommands.map{ |subcommand| subcommand[:name].length }.max
+
+    subcommands
+        .sort_by { |subcommand| subcommand[:name] }
+        .each do |subcommand|
+            puts "   %-#{max_subcommand_name_length}s   %s" % [subcommand[:name], subcommand[:description]]
     end
 end
 
 command = ARGV.shift
 case command
     when nil, '--help', '-h'
-        puts "usage: #{BASENAME} [command]"
+        puts "usage: #{BASENAME} <command> [<args>]"
         puts ''
 
         if $commands.empty?
