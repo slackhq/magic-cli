@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
 #Just a simple example command.
+# @param <random> - Random Parameter 1
+# @param - Random Parameter 2
 
-puts "It worked! 🎩✨"
+puts "It worked! 🎩✨" + ARGV.join(" ")

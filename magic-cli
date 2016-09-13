@@ -16,10 +16,11 @@ class MagicCli
         subcommands = []
         @commands.each do |filename|
             description = self.get_description(filename)
+            parameters = self.get_parameters(filename).join(" ")
             # Remove the `BASENAME-` PREFIX from the filename to get the name of the subcommand
             subcommand = File.basename(filename)[(BASENAME.size + 1)..-1]
             subcommands.push({
-                :name => subcommand,
+                :name => [subcommand, parameters].join(" "),
                 :description => description
             })
         end
@@ -43,6 +44,20 @@ class MagicCli
         return description
     end
 
+    def get_parameters(filename)
+      # Optionally, retrieve parameters that are required
+      lines = File.readlines(filename)
+      parameters = lines.map do |line|
+        if line.strip.start_with?('# @param')
+          line = line.strip.sub(/^# @param\s*/, '').sub(/-.*$/, '').strip
+          line = "<param>" if line.empty?
+          line
+        else
+          nil
+        end
+      end.compact
+      return parameters
+    end
 
     def execute(command, args)
         executable = File.join(COMMAND_DIR, PREFIX + command)
