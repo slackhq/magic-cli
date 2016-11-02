@@ -10,11 +10,22 @@ Rename the `magic-cli` script to whatever you want — for example, if you happe
 
 Now, when you run `example`, it will look for executables in the same directory as itself which have filenames that begin with `example-`. If there's an executable called `example-build`, you could run it by typing `example build`.
 
-Now, when you type `example`, you'll see `example build` in the list of supported subcommands. For extra credit, you can add a human-readable description in that list by putting a comment immediately under the `#!` line:
+Now, when you type `example`, you'll see `example build` in the list of supported subcommands. 
+
+For extra credit, you can add a human-readable description in that list by putting a comment immediately under the `#!` line:
 
 ````bash
 #!/usr/bin/env bash
 # This line will be shown in the list of commands.
+````
+
+You can also define any extra parameters that are required for the script with a `# @param` line for each parameter:
+
+````bash
+#!/usr/bin/env bash
+# This line will be shown in the list of commands.
+# @param <command_param> - Longer Description of the Parameter
+# @param - If you don’t give a parameter name, a default one will be created for you
 ````
 
 ## Installation
