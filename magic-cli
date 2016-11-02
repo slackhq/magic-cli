@@ -47,7 +47,8 @@ class MagicCli
     def get_parameters(filename)
       # Optionally, retrieve parameters that are required
       lines = File.readlines(filename)
-      parameters = lines.map do |line|
+      header = lines.take_while{|l| l.strip.start_with?('#')}
+      parameters = header.map do |line|
         if line.strip.start_with?('# @param')
           line = line.strip.sub(/^# @param\s*/, '').sub(/-.*$/, '').strip
           line = "<param>" if line.empty?
